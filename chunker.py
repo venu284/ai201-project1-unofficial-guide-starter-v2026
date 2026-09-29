@@ -83,20 +83,23 @@ def fallback_split(
 
 def split_documents(documents: list[Document]) -> list[Chunk]:
     """
-    Split documents into chunks. ⚠️ REPLACE THE BODY OF THIS IN MILESTONE 3.
+    Split documents into chunks.
 
-    Right now it just calls the fallback. That is the plain, generic behaviour
-    the brief is talking about.
+    Splits each document on markdown `##` section headers instead of cutting
+    fixed-size character windows. This corpus's guides are organized into
+    `##` sections that each carry one self-contained fact (opening hours,
+    transport frequency, a price comparison), all 174-711 characters long —
+    comfortably under a fixed-size cutoff, so splitting on section boundaries
+    keeps every fact intact instead of risking a cut mid-sentence.
 
-    When you write your own strategy, set `produced_by` to
-    "chunker.py::split_documents" so your README's Sample Chunks section names
-    the right function. `app.py chunks` prints that string for you.
+    A document's leading fragment (title, plus an intro paragraph if it has
+    one) becomes its own chunk unless it's under 60 characters — title only,
+    no real content — in which case it's folded into the first `##` section
+    instead of being emitted as a near-empty chunk.
 
-    Things worth thinking about before you write any code:
-      - Are your documents short posts or long guides?
-      - Is the useful information in one sentence, or spread over a paragraph?
-      - Would splitting on paragraph breaks keep more thoughts intact than
-        splitting on a character count?
+    `produced_by` is set to "chunker.py::split_documents" so the README's
+    Sample Chunks section names the right function. `app.py chunks` prints
+    that string for you.
     """
     chunks: list[Chunk] = []
     for doc in documents:
