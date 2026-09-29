@@ -119,9 +119,13 @@ chunker that regularly cuts sentences in half.
 
 
 
-For each of the Corry Lane price, Marchwood tram, Kestrelford market, and
-Kestrelford bus questions, the system names a source document that contains the
-expected answer in all three evaluation runs, 4 of 4 questions.
+For questions 1, 3, 4, and 5 in `QUESTIONS` in `questions.py` — "How much
+cheaper is comparable food on Corry Lane than on Brightwater's riverside
+strip?", "How often do Marchwood trams run on weekdays?", "During which
+months is Kestrelford's Saturday market much reduced?", and "Does the
+Kestrelford bus service run on Sundays?" — the system names a source document
+that contains the `expects` text in all three evaluation runs, 4 of 4
+questions.
 
 **Why this target:**
 
