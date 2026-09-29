@@ -23,8 +23,15 @@ For at least 4 of my 5 test questions, the retrieved chunks include one that
 contains the answer.
 
 **Why this target:**
-<!-- e.g. "One of my questions is about a topic only two documents mention, so
-     I expect that one to be hard." -->
+
+My 14 city-guide documents share a lot of vocabulary across different places.
+Kestrelford and Marchwood appear in several guides, while Corry Lane appears in
+both the Brightwater and eating guides and Corry Vale appears in its own guide
+and several cross-region guides. That overlap makes it plausible that a
+retriever pulls back a lexically close chunk about the wrong topic for the same
+place, rather than the one that actually answers the question. I have not run
+retrieval yet, so I cannot say which question that will be, only that the corpus
+gives me a specific reason to expect one miss rather than zero.
 
 ---
 
@@ -33,8 +40,13 @@ contains the answer.
 Every answer the system produces names at least one source document.
 
 **Why this target:**
-<!-- Why all five and not four? What about your setup makes that achievable —
-     or what would have to go wrong for it not to be? -->
+
+Naming a source is not a judgment call for the system. `app.py` prints a
+`Sources retrieved:` line built from the retrieved chunks' `source` fields.
+That output either appears or the pipeline is broken, regardless of whether the
+answer itself is right. I am setting this at 5 of 5 rather than 4 of 5 because a
+miss here would point to a wiring problem, not to a hard question, and I want a
+target that treats those two failure modes differently.
 
 ---
 
@@ -50,8 +62,15 @@ in at least 4 of 5 tries.
      just keep five of them, or the "4 of 5" above has nothing to be 4 of. -->
 
 **Why this target:**
-<!-- What did your distances look like when you set the cutoff in Milestone 4?
-     Was there a clean gap, or did the two groups overlap? -->
+
+I have not set the threshold yet, so I cannot point to a measured gap between
+in-scope and out-of-scope distances. What I can say is that my corpus covers
+everyday practical logistics — transport times, opening hours, cash versus
+cards, hospital access — and at least one of my five out-of-scope questions
+(the ibuprofen dosage one) sits in a loosely related practical/health space
+rather than somewhere obviously unrelated like a Rust for-loop. That gives me
+a concrete reason to expect one borderline case rather than assuming the gate
+will be clean across all five.
 
 ---
 
@@ -71,7 +90,18 @@ in at least 4 of 5 tries.
 
 
 
+Of the five chunks printed by `python app.py chunks -n 5`, at least 4 contain
+one complete `##` section, with no sentence cut off at the start or end of the
+chunk.
+
 **Why this target:**
+
+My documents are 1.4K to 2.5K characters long and organized into `##` sections
+that each carry one fact, such as opening hours, transport frequency, or a price
+comparison. At the 800-character default, a chunk boundary can land inside a
+section and split the fact from its number. Four of five leaves room for one edge
+case, a section that is genuinely longer than 800 characters, without excusing a
+chunker that regularly cuts sentences in half.
 
 
 
@@ -89,7 +119,17 @@ in at least 4 of 5 tries.
 
 
 
+For each of the Corry Lane price, Marchwood tram, Kestrelford market, and
+Kestrelford bus questions, the system names a source document that contains the
+expected answer in all three evaluation runs, 4 of 4 questions.
+
 **Why this target:**
+
+Duplication across documents is a real feature of this corpus, not a
+hypothetical. It is an easy way for a system to look right while citing the
+wrong file, which criterion 2, "names a source," would not catch on its own. I
+set this at 4 of 4 because a cited source that does not contain the fact is a
+source-attribution failure, not a hard question.
 
 
 
