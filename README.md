@@ -29,18 +29,25 @@
 
 ## Chunking Strategy
 
-**Chunk size:**
-**Overlap:**
+**Chunk size:** no fixed size — split on markdown `##` section headers.
+**Overlap:** none.
 
-<!-- What about YOUR documents made you pick these numbers? Short posts and
-     long sectioned guides don't want the same chunking, and "800 seemed
-     reasonable" earns nothing. Point at something you noticed when you read
-     the documents in Milestone 1.
+`split_documents` in `chunker.py` splits each document's text on `\n(?=## )`
+instead of cutting fixed-size character windows. My corpus is 14 city guides,
+each organized into `##` sections that carry one self-contained fact —
+opening hours, transport frequency, a price comparison — and those sections
+run 174 to 711 characters, comfortably under the starter's 800-character
+default. That meant the fixed-size chunker was never going to need to split a
+section further; it was only ever going to risk cutting one in half at an
+arbitrary character boundary, splitting a fact from the number that goes with
+it. Four of my docs (`guide_eating.md`, `guide_seasons.md`, `guide_walking.md`,
+`guide_regional_transport.md`) have no intro paragraph before the first `##` —
+just the title line — so I fold that fragment into the first real section
+instead of emitting a 23–27 character chunk that's just a heading.
 
-     If you changed your mind partway through, say so and say why. That's worth
-     more than pretending you got it right first time.
-
-     Milestone 3. -->
+I didn't change strategy partway through — the corpus read in Milestone 1
+already made the section boundaries obvious as the right cut points, so this
+was the first thing I tried.
 
 ## Sample Chunks
 
@@ -53,45 +60,45 @@
 
      Milestone 3. -->
 
-**Chunk 1** — source: `` — produced by: ``
+**Chunk 1** — source: `guide_accessibility.md#0` — produced by: `chunker.py::split_documents`
 
 ```
-======================================================================
-Chunk 1  |  source: thread_bike_commute.txt#0  |  produced by: chunker.py::fallback_split
-======================================================================
-THREAD: Is a bike worth it for a 20 minute walk commute?
+# Getting around the region with limited mobility
 
---- reply 1 (14 votes) ---
-Yeah. Cuts an 18 minute walk to about 6. The thing nobody mentions is storage — covered bike parking exists at three buildings and is full by 9am at all three.
-
---- reply 2 (9 votes) ---
-Counterpoint, I sold mine. Between November and March the paths are either icy or salted and salt destroys a drivetrain in one season.
-
---- reply 3 (22 votes) ---
-Both true. I keep a cheap bike for September to November and walk the rest of the year. Total cost was about $120 for the bike and I don't care what happens to it.
-
---- reply 4 (5 votes) ---
-If you do get one, the campus does free registration and it's the only reason I got mine back after it was taken.
+An honest assessment rather than a promotional one. Some of these places are
+difficult and it is better to know in advance.
 ```
 
-**Chunk 2** — source: `` — produced by: ``
+**Chunk 2** — source: `guide_corry_vale.md#5` — produced by: `chunker.py::split_documents`
 
 ```
+## Where to stay
+
+Perhaps thirty beds in the entire valley, spread across two pubs and a handful of farmhouse rooms. In summer these are booked months ahead. Camping is permitted on two marked fields and nowhere else.
 ```
 
-**Chunk 3** — source: `` — produced by: ``
+**Chunk 3** — source: `guide_givens_mill.md#2` — produced by: `chunker.py::split_documents`
 
 ```
+## Getting around
+
+Everything is on one street along the river. The mill is at one end and the church at the other, eight minutes apart. The riverside path continues in both directions for as far as you want to walk.
 ```
 
-**Chunk 4** — source: `` — produced by: ``
+**Chunk 4** — source: `guide_kestrelford.md#4` — produced by: `chunker.py::split_documents`
 
 ```
+## What to see
+
+The market square on a Saturday morning is the main event and has run continuously since the 1400s. The parish church has a 13th-century tower you can climb for £2. The old trackbed walk runs six miles to the next village along an easy gradient and is the best half-day here.
 ```
 
-**Chunk 5** — source: `` — produced by: ``
+**Chunk 5** — source: `guide_pellew_sands.md#6` — produced by: `chunker.py::split_documents`
 
 ```
+## When to go
+
+June and September for the beach without the crowds. July and August are busy and the town is at its most itself, for better and worse. Winter is bleak, largely closed, and has a following among people who like that sort of thing.
 ```
 
 ## Sample Answer
