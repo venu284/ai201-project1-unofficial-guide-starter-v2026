@@ -3,23 +3,16 @@ Stage 2 of the pipeline: splitting documents into chunks.
 
 ⚠️ THIS IS THE FILE YOU CHANGE IN MILESTONE 3.
 
-`split_documents` below is deliberately plain. It cuts every document into
-fixed-size pieces with a fixed overlap and pays no attention to where sentences
-or paragraphs end. It works, and it is not good.
+`fallback_split` is the starter's fixed-size baseline. It cuts every document
+into 800-character windows with 120 characters of overlap and ignores sentence
+and section boundaries.
 
-On a corpus of short posts it may not cut anything at all: `campus_life` comes
-out as 88 documents and 88 chunks, because almost nothing in it reaches 800
-characters. That is the baseline, not a bug — Milestone 3 is where you decide
-whether one post should stay one chunk.
+`split_documents` is the city-guides strategy. It keeps each markdown `##`
+section together, so facts such as opening hours and transport frequencies stay
+with the heading and context that explain them.
 
-Your job in Milestone 3 is to replace the *body* of `split_documents` with a
-strategy that fits the documents you actually read in Milestone 1. Keep the
-name and the shape of what it returns — the rest of the pipeline calls it, and
-your README has to name the function that produced your chunks.
-
-If you get stuck for 30 minutes, `fallback_split` is the original. Switch back
-to it, write down what you saw, and move on. That's a real observation about
-your pipeline, not giving up.
+Both functions return the same `Chunk` shape. The rest of the pipeline can use
+either one, and `produced_by` records which function created each chunk.
 """
 
 import re
