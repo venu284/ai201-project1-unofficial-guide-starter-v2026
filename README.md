@@ -159,6 +159,17 @@ After implementing it I ran `chunker.py` (94 chunks) and indexing, and confirmed
 was merged. I then corrected a stale docstring that still described the old
 fallback.
 
+**Unit 2.** I chose hybrid reranking after comparing three options (hybrid
+reranking, a larger `TOP_K`, a second chunking strategy) against the one
+diagnosis I had, and Claude implemented it in `store.py::search`. I used Codex
+to check my evaluation evidence and the consistency between hybrid ranking, the
+raw cosine distances, the gate, and the smoke test. That check found that
+`tools/smoke_test.py` still required nearest-first results and that the
+`app.py retrieve` text still implied the first row had the lowest distance; I
+changed both myself. I confirmed the cosine distances and the out-of-scope gate
+results were identical before and after. The results, the verdicts, and the
+conclusion that no criterion moved are from my own run log.
+
 I did this work with Claude and used Codex to check it, so I could compare how
 each tool handled the same task. Codex's review of the finished README caught
 wording that did not match the code, for example that the retrieved sources are
@@ -375,6 +386,62 @@ the five returned chunks, from `search`):
 | Kestrelford market | 1 | 1 |
 | Kestrelford Sunday bus | 1 | 1 |
 
+Real output from the after run, produced by `run_eval.py::main` (results file
+`results/run_2026-09-30_2043_after.md`, retrieval from `store.py::search` with
+hybrid reranking, chunks from `chunker.py::split_documents`, cutoff 0.6, top-k 5).
+Run 1 of each question:
+
+```
+How much cheaper is comparable food on Corry Lane than on Brightwater's riverside strip? — run 1
+- Best distance: 0.3549 (passed the gate)
+- Sources retrieved: guide_brightwater.md, guide_eating.md, guide_pellew_sands.md, guide_regional_transport.md
+
+Comparable food on Corry Lane costs about a third less than on Brightwater's riverside strip.
+
+Sources: `guide_eating.md` and `guide_brightwater.md`
+
+What time do kitchens outside Marchwood usually stop serving food? — run 1
+- Best distance: 0.2907 (passed the gate)
+- Sources retrieved: guide_brightwater.md, guide_eating.md, guide_elder_ness.md, guide_kestrelford.md, guide_marchwood.md
+
+Outside Marchwood, kitchens across the region stop serving food at 9pm and often earlier. (Source: guide_eating.md)
+
+How often do Marchwood trams run on weekdays? — run 1
+- Best distance: 0.3842 (passed the gate)
+- Sources retrieved: guide_eating.md, guide_kestrelford.md, guide_marchwood.md, guide_regional_transport.md
+
+Based on `guide_marchwood.md`, Marchwood trams run every 8 minutes on weekdays.
+
+During which months is Kestrelford's Saturday market much reduced? — run 1
+- Best distance: 0.2596 (passed the gate)
+- Sources retrieved: guide_eating.md, guide_kestrelford.md, guide_regional_transport.md, guide_seasons.md
+
+Kestrelford's Saturday market is much reduced from November to February (according to `guide_eating.md` and `guide_kestrelford.md`).
+
+Does the Kestrelford bus service run on Sundays? — run 1
+- Best distance: 0.2217 (passed the gate)
+- Sources retrieved: guide_brightwater.md, guide_eating.md, guide_givens_mill.md, guide_regional_transport.md
+
+No, the Kestrelford service does not run on Sundays (guide_regional_transport.md).
+```
+
+Criterion 3, the gate on the out-of-corpus questions, from the same results
+file (`run_eval.py::check_out_of_scope`, cutoff 0.6, refused 5 of 5):
+
+```
+| Out-of-scope question | Best distance | Gate |
+|---|---|---|
+| What is the capital of Mongolia? | 0.803 | refused |
+| How do I change the oil in a diesel engine? | 0.892 | refused |
+| Who won the 1994 World Cup? | 0.975 | refused |
+| What is the recommended dosage of ibuprofen for a headache? | 0.846 | refused |
+| How do I write a for loop in Rust? | 0.813 | refused |
+```
+
+Criterion 4: I did not change the chunker in this unit, so the five chunks are
+the same ones printed in the before log above, from
+`python app.py chunks -n 5` (`chunker.py::split_documents`).
+
 **Did it help?** Not on the five criteria, and it could not have: reordering
 the same five chunks leaves criterion 1 ("any of the five"), the gate (which
 uses the minimum distance), the chunks, and the out-of-scope refusals
@@ -390,17 +457,19 @@ test that.
 
 ## What's Still Broken
 
-<!-- For each criterion still missed after your fix: what you'd do about it,
-     and why you stopped where you did.
+No acceptance criterion was missed after the improvement, so there is no
+unfixed criterion failure to diagnose or repair.
 
-     "I ran out of time" is fine if it's true. Pretending nothing is left is
-     not.
-
-     Milestone 5. -->
+One limitation remains: hybrid reranking only reorders the five chunks already
+returned by semantic search. It cannot recover an answer chunk that semantic
+retrieval leaves outside the top five. I stopped here because all five test
+questions already retrieved their answer chunks and the kitchen-hours result
+was the only observed ordering issue.
 
 ## What I'd Do Differently
 
-<!-- Knowing what you know now — which of your five criteria would you write
-     differently, and why?
-
-     Milestone 5. -->
+I would set criterion 1 to 5 of 5 rather than 4 of 5. All five questions
+retrieved a chunk containing the answer in every run, so the original target
+was easier than this corpus and question set justified. I would still set the
+target before testing in a future unit; the change is based on this unit's
+evidence, not a retroactive edit to `criteria.md`.
