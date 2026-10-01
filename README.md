@@ -334,34 +334,59 @@ exactly as I wrote it before I had results.
 
 ## The Improvement
 
-**What I changed:**
+**What I changed:** I added hybrid reranking to `store.py::search`. Semantic
+search still returns its top five chunks. I then score those same five with
+BM25 keyword matching, built over all 94 chunks so word rarity reflects the
+whole corpus, and reorder them by `0.7 * cosine similarity + 0.3 * BM25`, each
+min-max normalised across the five. Every result keeps its raw cosine distance,
+so `gate.py` and the 0.6 cutoff are untouched. I fixed the 0.3 weight before
+running the after evaluation and did not tune it on my test questions.
 
-**Why I picked it:**
-
-<!-- Connect it to a specific diagnosis above in one sentence. If you can't,
-     you picked a fix because it sounded impressive. -->
+**Why I picked it:** The one finding in Diagnoses is that for the kitchen-hours
+question the Marchwood chunk (10:30pm, the exception) ranked first and the
+`guide_eating.md` chunk that holds "outside Marchwood ... 9pm" ranked second, a
+cosine gap of only 0.0019, and exact words like "outside" and "stop serving"
+should separate two chunks that embeddings treat as near-identical. I rejected
+raising `TOP_K` (the answer chunk was already in the top five, so it does not
+touch ordering) and re-chunking (section chunks already kept every answer
+intact).
 
 ### Run Log — After
 
-<!-- Same format, same five criteria, three runs each.
-     `python run_eval.py --label after` -->
+Produced by `run_eval.py::main`, results file
+`results/run_2026-09-30_2043_after.md`, same five criteria and three runs.
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunk contains the answer | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 | MET |
+| 2. Every answer names a source | 5 of 5 | 5 of 5 | 5 of 5 | 5 of 5 | MET |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 | MET |
+| 4. Sampled chunks are complete `##` sections | 4 of 5 | 4 of 5 | 4 of 5 | 4 of 5 | MET |
+| 5. Cited source contains the fact (4 named questions) | 4 of 4, all 3 runs | 4 of 4 | 4 of 4 | 4 of 4 | MET |
 
-**Did it help?**
+Rank of the chunk containing the `expects` text, before and after (position in
+the five returned chunks, from `search`):
 
-<!-- Say plainly whether it did, and how you know. If it made things worse,
-     say that — a change that backfired, honestly reported, earns full credit
-     and is more interesting than one that worked. What matters is that you can
-     tell.
+| Question | Rank before | Rank after |
+|---|---|---|
+| Corry Lane price | 1 | 1 |
+| Kitchens outside Marchwood | 2 | 1 |
+| Marchwood trams | 1 | 1 |
+| Kestrelford market | 1 | 1 |
+| Kestrelford Sunday bus | 1 | 1 |
 
-     Milestone 4. -->
+**Did it help?** Not on the five criteria, and it could not have: reordering
+the same five chunks leaves criterion 1 ("any of the five"), the gate (which
+uses the minimum distance), the chunks, and the out-of-scope refusals
+unchanged, and all five rows came out exactly as in the before run, with all
+cosine distances identical. It did what I aimed it at: the kitchen-hours chunk
+that holds the 9pm answer moved from rank 2 to rank 1, and the other four
+answer chunks stayed at rank 1, so nothing regressed. The effect on the final
+answers is small to none. The kitchen answer was already correct 3 of 3 before
+because the prompt includes all five chunks, and the after answers read the
+same and cite `guide_eating.md`. The change would matter more with a larger
+`TOP_K` or a long prompt, where order decides what the model sees, and I did not
+test that.
 
 ## What's Still Broken
 

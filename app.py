@@ -161,6 +161,8 @@ def cmd_retrieve(args):
         return
 
     print(f"\nQuestion: {args.question}\n")
+    print("Ranked by hybrid score (cosine + BM25 keywords). The distance column")
+    print("is the raw cosine distance, so row 1 is not always the lowest distance.\n")
     print(f"{'#':<3} {'distance':<10} {'source':<32} preview")
     print("-" * 100)
     for i, r in enumerate(results, 1):
@@ -169,7 +171,7 @@ def cmd_retrieve(args):
 
     decision = gate.check(results)
     print(f"\nGate: {decision.explanation}")
-    print("\nLower is better. 0.3 is a close match, 0.9 is unrelated.")
+    print("\nFor each cosine distance, lower is closer: 0.3 is a close match, 0.9 is unrelated.")
     print("Milestone 4: run your five questions, then the five in OUT_OF_SCOPE")
     print("that your documents clearly don't cover, and look for the gap")
     print("between the two groups. Your cutoff goes in that gap.")

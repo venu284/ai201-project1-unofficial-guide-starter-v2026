@@ -18,6 +18,7 @@ rest of the project if they were wrong:
 """
 
 import os
+import re
 import shutil
 from dataclasses import dataclass
 
@@ -28,6 +29,7 @@ from dataclasses import dataclass
 os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
 
 import chromadb  # noqa: E402
+from rank_bm25 import BM25Okapi  # noqa: E402
 
 import config
 from chunker import Chunk
@@ -178,6 +180,35 @@ def build_index(
     return len(chunks)
 
 
+# Share of the combined ranking given to keyword (BM25) matching. Fixed before
+# the "after" evaluation and not tuned on the evaluation questions.
+BM25_WEIGHT = 0.3
+
+_bm25_cache: dict = {}
+
+
+def _tokens(text: str) -> list[str]:
+    return re.findall(r"[a-z0-9]+", text.lower())
+
+
+def _bm25_for(collection, name: str):
+    """BM25 over every chunk, so word rarity reflects the whole corpus."""
+    key = (name, collection.count())
+    if key not in _bm25_cache:
+        stored = collection.get(include=["documents"])
+        ids = stored["ids"]
+        bm25 = BM25Okapi([_tokens(doc) for doc in stored["documents"]])
+        _bm25_cache[key] = (bm25, {chunk_id: i for i, chunk_id in enumerate(ids)})
+    return _bm25_cache[key]
+
+
+def _min_max(values: list[float]) -> list[float]:
+    low, high = min(values), max(values)
+    if high == low:
+        return [0.0 for _ in values]
+    return [(v - low) / (high - low) for v in values]
+
+
 def search(
     question: str,
     top_k: int | None = None,
@@ -185,9 +216,12 @@ def search(
     variant: str = "default",
 ) -> list[Result]:
     """
-    Retrieve the chunks closest in meaning to a question.
+    Retrieve the chunks closest in meaning to a question, then reorder them.
 
-    Returns them nearest-first, each with its distance.
+    The semantic top-k is reranked by combining cosine similarity with BM25
+    keyword matching (BM25_WEIGHT). Each result keeps its raw cosine distance,
+    so the order is no longer strictly nearest-first but the distances, and
+    the relevance gate that reads them, are unchanged.
     """
     top_k = top_k or config.TOP_K
     name = config.collection_name(corpus, variant)
@@ -217,7 +251,19 @@ def search(
                 produced_by=str(meta.get("produced_by", "unknown")),
             )
         )
-    return results
+
+    if len(results) < 2:
+        return results
+
+    bm25, position = _bm25_for(collection, name)
+    keyword_scores = bm25.get_scores(_tokens(question))
+    keyword = _min_max([float(keyword_scores[position[r.label]]) for r in results])
+    semantic = _min_max([1.0 - r.distance for r in results])
+    combined = [
+        (1 - BM25_WEIGHT) * s + BM25_WEIGHT * k for s, k in zip(semantic, keyword)
+    ]
+    order = sorted(range(len(results)), key=lambda i: combined[i], reverse=True)
+    return [results[i] for i in order]
 
 
 def index_exists(corpus: str | None = None, variant: str = "default") -> bool:

@@ -92,11 +92,9 @@ def main():
         results = search("what should I know about this?", corpus=corpus)
         check(f"  retrieves", len(results) > 0, f"top-{len(results)}")
         check(
-            f"  results are ordered nearest first",
-            all(
-                results[i].distance <= results[i + 1].distance
-                for i in range(len(results) - 1)
-            ),
+            f"  results are distinct and complete (hybrid order, not nearest-first)",
+            len({r.label for r in results}) == len(results)
+            and all(r.text.strip() and r.source for r in results),
         )
         check(
             f"  distances are cosine-shaped (0 to 2)",
