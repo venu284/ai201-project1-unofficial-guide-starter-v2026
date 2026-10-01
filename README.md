@@ -192,15 +192,115 @@ myself.
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunk contains the answer | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  |
+| 2. Every answer names a source | 5 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  |
+| 4. Sampled chunks are complete `##` sections | 4 of 5 | 4 of 5 | 4 of 5 | 4 of 5 |  |
+| 5. Cited source contains the fact (4 named questions) | 4 of 4, all 3 runs | 4 of 4 | 4 of 4 | 4 of 4 |  |
 
-<!-- Underneath, paste the REAL output for each criterion from one of your
-     runs — the actual text your system produced, not a description of it.
-     Name the file and function that produced it. -->
+How I counted each row:
+
+- **1.** Retrieval is deterministic, so the same chunks come back every run. For each question I checked that its `expects` text appears in one of the five retrieved chunks: `a third less`, `9pm`, `every 8 minutes`, `November to February`, `does not run on Sundays`. All five do.
+- **2.** Every one of the 15 answers (5 questions, 3 runs) names a source file in its own text. The refusals in row 3 are not answers, so they have no source.
+- **3.** One deterministic pass, so the same value in all three columns: the gate refused all five `OUT_OF_SCOPE` questions.
+- **4.** Also deterministic. Of the five chunks printed by `python app.py chunks -n 5`, chunks 2 to 5 are each one complete `##` section. Chunk 1 (`guide_accessibility.md#0`) is a title and intro paragraph with no `##` heading, so I did not count it, even though no sentence in it is cut off.
+- **5.** I scored on the files each answer cites in its own text, and checked each one's source file for the `expects` text: Corry Lane price cites `guide_eating.md` and `guide_brightwater.md` (both contain `a third less`); trams cites `guide_marchwood.md` (`every 8 minutes`); market cites `guide_eating.md` and `guide_kestrelford.md` (`November to February`); bus cites `guide_regional_transport.md` (`does not run on Sundays`). This held in all three runs.
+
+Real output, produced by `run_eval.py::main` (results file
+`results/run_2026-09-30_2024_before.md`, chunks from
+`chunker.py::split_documents`, cutoff 0.6, top-k 5). Run 1 of each question:
+
+```
+How much cheaper is comparable food on Corry Lane than on Brightwater's riverside strip? — run 1
+- Best distance: 0.3549 (passed the gate)
+- Sources retrieved: guide_brightwater.md, guide_eating.md, guide_pellew_sands.md, guide_regional_transport.md
+
+Comparable food on Corry Lane costs about a third less than on Brightwater's riverside strip (guide_eating.md and guide_brightwater.md).
+
+What time do kitchens outside Marchwood usually stop serving food? — run 1
+- Best distance: 0.2907 (passed the gate)
+- Sources retrieved: guide_brightwater.md, guide_eating.md, guide_elder_ness.md, guide_kestrelford.md, guide_marchwood.md
+
+Kitchens across the region outside Marchwood stop serving at 9pm and often earlier (guide_eating.md, guide_brightwater.md).
+
+How often do Marchwood trams run on weekdays? — run 1
+- Best distance: 0.3842 (passed the gate)
+- Sources retrieved: guide_eating.md, guide_kestrelford.md, guide_marchwood.md, guide_regional_transport.md
+
+Marchwood trams run every 8 minutes on weekdays.
+
+Source: guide_marchwood.md
+
+During which months is Kestrelford's Saturday market much reduced? — run 1
+- Best distance: 0.2596 (passed the gate)
+- Sources retrieved: guide_eating.md, guide_kestrelford.md, guide_regional_transport.md, guide_seasons.md
+
+Kestrelford's Saturday market is much reduced from November to February (from `guide_eating.md` and `guide_kestrelford.md`).
+
+Does the Kestrelford bus service run on Sundays? — run 1
+- Best distance: 0.2217 (passed the gate)
+- Sources retrieved: guide_brightwater.md, guide_eating.md, guide_givens_mill.md, guide_regional_transport.md
+
+No, the Kestrelford service does not run on Sundays (guide_regional_transport.md).
+```
+
+Criterion 3, the relevance gate on the out-of-corpus questions, from the same
+results file (produced by `run_eval.py::check_out_of_scope`):
+
+```
+Produced by `run_eval.py::check_out_of_scope`, cutoff 0.6. Refused 5 of 5.
+
+| Out-of-scope question | Best distance | Gate |
+|---|---|---|
+| What is the capital of Mongolia? | 0.803 | refused |
+| How do I change the oil in a diesel engine? | 0.892 | refused |
+| Who won the 1994 World Cup? | 0.975 | refused |
+| What is the recommended dosage of ibuprofen for a headache? | 0.846 | refused |
+| How do I write a for loop in Rust? | 0.813 | refused |
+```
+
+Criterion 4, the exact output of `python app.py chunks -n 5` (chunks produced
+by `chunker.py::split_documents`):
+
+```
+94 chunks total. Showing 5, spread across the corpus.
+
+======================================================================
+Chunk 1  |  source: guide_accessibility.md#0  |  produced by: chunker.py::split_documents
+======================================================================
+# Getting around the region with limited mobility
+
+An honest assessment rather than a promotional one. Some of these places are
+difficult and it is better to know in advance.
+
+======================================================================
+Chunk 2  |  source: guide_corry_vale.md#5  |  produced by: chunker.py::split_documents
+======================================================================
+## Where to stay
+
+Perhaps thirty beds in the entire valley, spread across two pubs and a handful of farmhouse rooms. In summer these are booked months ahead. Camping is permitted on two marked fields and nowhere else.
+
+======================================================================
+Chunk 3  |  source: guide_givens_mill.md#2  |  produced by: chunker.py::split_documents
+======================================================================
+## Getting around
+
+Everything is on one street along the river. The mill is at one end and the church at the other, eight minutes apart. The riverside path continues in both directions for as far as you want to walk.
+
+======================================================================
+Chunk 4  |  source: guide_kestrelford.md#4  |  produced by: chunker.py::split_documents
+======================================================================
+## What to see
+
+The market square on a Saturday morning is the main event and has run continuously since the 1400s. The parish church has a 13th-century tower you can climb for £2. The old trackbed walk runs six miles to the next village along an easy gradient and is the best half-day here.
+
+======================================================================
+Chunk 5  |  source: guide_pellew_sands.md#6  |  produced by: chunker.py::split_documents
+======================================================================
+## When to go
+
+June and September for the beach without the crowds. July and August are busy and the town is at its most itself, for better and worse. Winter is bleak, largely closed, and has a following among people who like that sort of thing.
+```
 
 ## Verdicts
 
