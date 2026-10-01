@@ -1,6 +1,6 @@
 # The Unofficial Guide
 
-<!-- Replace this line with your name and which corpus you picked. -->
+Venu Vemuru — `city_guides` corpus
 
 > **This file is your submission.** Fill it in as you go — most sections get
 > written during the milestone that produces them, not at the end.
@@ -21,11 +21,16 @@
 
 ## What This Does
 
-<!-- Three or four sentences. Which corpus you picked, and the kinds of
-     questions your system answers. Write it for someone who has never seen
-     this repo.
-
-     Milestone 5. -->
+I chose the `city_guides` corpus: 14 structured markdown guides to a fictional
+region, covering individual towns plus region-wide guides on eating, transport,
+walking, seasons, and accessibility. The system splits each guide by `##`
+section, embeds the chunks, retrieves the closest ones for a question, and has a
+model write an answer, with the retrieved source documents printed alongside it.
+It answers specific factual questions, such as how often a tram runs, when
+kitchens stop serving, which months a market is reduced, or whether a bus runs
+on Sundays. If the best retrieved chunk is further than the relevance cutoff
+(0.6), it replies "I don't have enough information about that" instead of
+guessing.
 
 ## Chunking Strategy
 
@@ -50,15 +55,6 @@ already made the section boundaries obvious as the right cut points, so this
 was the first thing I tried.
 
 ## Sample Chunks
-
-<!-- Five chunks, pasted as text. Label each one and name the file it came from
-     AND the function that produced it — the grader checks your code against
-     what you claim here.
-
-     `python app.py chunks -n 5` prints all three for you. Copy them straight
-     across.
-
-     Milestone 3. -->
 
 **Chunk 1** — source: `guide_accessibility.md#0` — produced by: `chunker.py::split_documents`
 
@@ -103,9 +99,6 @@ June and September for the beach without the crowds. July and August are busy an
 
 ## Sample Answer
 
-<!-- One complete question and answer, pasted as text, with the source line
-     visible. Milestone 4. -->
-
 **Question:** How often do Marchwood trams run on weekdays?
 
 **Answer:**
@@ -146,18 +139,31 @@ moving it, because the measurement put it where I would have put it anyway.
 
 ## How I Used AI
 
-<!-- Two specific moments. For each: what you asked for, what came back, and
-     what you changed about it.
+**1. Pressure-testing the acceptance criteria.** I asked Claude to run my five
+criteria through the self-check, saying how it would test each one using only
+the sentence. Four passed. It flagged criterion 5: I had named the questions by
+topic ("Corry Lane price", "Marchwood tram"), so two graders could map those
+labels to different entries in `questions.py`. It had also suggested a Corry
+Lane / Corry Vale mix-up criterion as an option; I did not use it and kept the
+duplicated-fact idea. I rewrote criterion 5 to cite the exact question text and
+the `expects` field, then had the check re-run on the new wording.
 
-     "I asked Claude to write the chunking function from my notes. It ignored
-     the overlap, so I added that myself" is the level of detail we're after.
-     "I used AI to help me code" is not.
+**2. Planning the chunker.** I asked Claude to plan a chunking strategy for my
+corpus. It measured the `##` sections (174 to 711 characters), found four guides
+whose opening fragment is only a title (23 to 27 characters), and proposed
+splitting on `##` and folding any opening fragment under 60 characters into the
+next section. I limited the plan to `split_documents`, left `fallback_split` and
+`config.py` unchanged, and added `app.py index` and `--from-doc` to the checks.
+After implementing it I ran `chunker.py` (94 chunks) and indexing, and confirmed
+`guide_eating` produced 5 chunks rather than 6, which shows the title fragment
+was merged. I then corrected a stale docstring that still described the old
+fallback.
 
-     Milestone 5. -->
-
-**1.**
-
-**2.**
+I did this work with Claude and used Codex to check it, so I could compare how
+each tool handled the same task. Codex's review of the finished README caught
+wording that did not match the code, for example that the retrieved sources are
+printed by the system rather than named by the model. I made those fixes
+myself.
 
 <!-- ── Stretch features ─────────────────────────────────────────────────────
      Doing one? Say so here BEFORE you start. A feature this README never
