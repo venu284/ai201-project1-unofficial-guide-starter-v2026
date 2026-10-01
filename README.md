@@ -304,22 +304,13 @@ June and September for the beach without the crowds. July and August are busy an
 
 ## Verdicts
 
-<!-- MET or MISSED for each of the five, against the target you wrote last
-     unit — not a new one. Plus a sentence on how you decided. That sentence
-     matters most where it was close.
-
-     If your target said 4 of 5 and your runs came out 4, 3, 4, that's a MISS.
-     The target has to hold, not show up occasionally.
-
-     Milestone 2. -->
-
 | # | Criterion | Verdict | How I decided |
 |---|---|---|---|
-| 1 |  |  |  |
-| 2 |  |  |  |
-| 3 |  |  |  |
-| 4 |  |  |  |
-| 5 |  |  |  |
+| 1 | Retrieved chunks contain the answer | MET | Each of the three runs scored 5 of 5, which exceeds the 4-of-5 target. |
+| 2 | Every answer names a source | MET | All 15 generated answers named at least one source document, meeting the 5-of-5 target in every run. |
+| 3 | Gate stops out-of-corpus questions | MET | The deterministic gate refused all 5 out-of-scope questions, exceeding the 4-of-5 target. |
+| 4 | Sampled chunks are complete sections | MET | Four of the five fixed sample chunks were complete `##` sections with no sentence cut off, exactly meeting the 4-of-5 target. |
+| 5 | Cited source contains the fact | MET | For all four named questions, every run cited a document containing the expected fact, meeting the 4-of-4 target across all three runs. |
 
 ## Diagnoses
 
