@@ -314,23 +314,23 @@ June and September for the beach without the crowds. July and August are busy an
 
 ## Diagnoses
 
-<!-- For each miss: which stage caused it, and how. The stage alone isn't
-     enough — you need the mechanism.
+No criteria were missed in the before run, so there is no failed pipeline stage
+(loading, chunking, embedding, retrieval, or generation) to diagnose. I am not
+going to invent a failure to fill this section.
 
-     Not a diagnosis: "Question 3 didn't work."
-     A diagnosis:     "Question 3 asks about laundry costs. The answer is in
-                       one sentence that got split across two chunks, so
-                       neither chunk on its own contains it."
+The finding I do have is that at least one target looks conservative.
+Criterion 1 was set at 4 of 5: at least 4 of my 5 questions should have a
+retrieved chunk that contains the answer. It scored 5 of 5 in all three runs.
+The answer chunk was also near the top each time: it ranked first for four of
+the questions and second for the kitchen-hours question, where the Marchwood
+chunk (which says kitchens serve until 10:30pm) ranked just ahead of the
+`guide_eating.md` chunk that contains the `9pm` answer. If I wrote this
+criterion again, I would set the target to 5 of 5, because this corpus has
+clearly headed sections and all five factual questions retrieved the supporting
+section consistently.
 
-     The five stages: loading → chunking → embedding → retrieval → generation.
-
-     Look for a pattern. If three misses all ask about numbers, that's one
-     problem, not three.
-
-     Missed nothing? Say so, then say honestly whether your targets were set
-     low, and which one you'd tighten and to what.
-
-     Milestone 3. -->
+This is an observation, not a revision. Criterion 1 in `criteria.md` stays
+exactly as I wrote it before I had results.
 
 ## The Improvement
 
