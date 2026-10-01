@@ -106,27 +106,43 @@ June and September for the beach without the crowds. July and August are busy an
 <!-- One complete question and answer, pasted as text, with the source line
      visible. Milestone 4. -->
 
-**Question:**
+**Question:** How often do Marchwood trams run on weekdays?
 
 **Answer:**
 
 ```
+  (best distance 0.384, cutoff 0.6)
+
+Marchwood trams run every 8 minutes on weekdays (from guide_marchwood.md).
+
+Sources retrieved: guide_eating.md, guide_kestrelford.md, guide_marchwood.md, guide_regional_transport.md
 ```
 
-**My relevance cutoff:**
+**My relevance cutoff:** `THRESHOLD = 0.6` in `config.py`.
 
-<!-- The number you set in config.py, and how you got there.
-
-     You ran five questions your corpus covers and the five in OUT_OF_SCOPE
-     that it clearly doesn't, and wrote down the best distance for each. What
-     did those two groups look like? Where was the gap? Put the actual numbers
-     here — the table below wants all ten rows.
-
-     Milestone 4. -->
+I ran `python app.py retrieve` on my five real questions and the five
+`OUT_OF_SCOPE` questions and wrote down the best (lowest) distance for each.
+The groups did not overlap: the real questions ranged from 0.222 to 0.384, and
+the out-of-scope ones from 0.803 to 0.975. The gap runs from 0.384 to 0.803, and
+0.6 sits close to its midpoint (about 0.59), leaving roughly 0.2 of room on each
+side. That margin matters more than the exact number: a real question phrased
+less cleanly than mine could drift toward 0.5 and still get through, and an
+off-topic question that happens to share a word with the corpus would need to
+improve by 0.2 before it slipped past. I kept the starter's 0.6 rather than
+moving it, because the measurement put it where I would have put it anyway.
 
 | Question | In corpus? | Best distance |
 |---|---|---|
-|  |  |  |
+| How much cheaper is comparable food on Corry Lane than on Brightwater's riverside strip? | Yes | 0.3549 |
+| What time do kitchens outside Marchwood usually stop serving food? | Yes | 0.2907 |
+| How often do Marchwood trams run on weekdays? | Yes | 0.3842 |
+| During which months is Kestrelford's Saturday market much reduced? | Yes | 0.2596 |
+| Does the Kestrelford bus service run on Sundays? | Yes | 0.2217 |
+| What is the capital of Mongolia? | No | 0.8026 |
+| How do I change the oil in a diesel engine? | No | 0.8917 |
+| Who won the 1994 World Cup? | No | 0.9747 |
+| What is the recommended dosage of ibuprofen for a headache? | No | 0.8459 |
+| How do I write a for loop in Rust? | No | 0.8130 |
 
 ## How I Used AI
 
